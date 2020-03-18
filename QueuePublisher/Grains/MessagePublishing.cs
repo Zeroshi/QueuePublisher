@@ -4,12 +4,17 @@ using Orleans;
 using RabbitMQ.Client;
 using System;
 using System.Threading.Tasks;
+using static Grains.Enums.Enums;
 
 namespace Grains
 {
     public class MessagePublishing : Grain, IPublishMessage
     {
         private readonly ILogger _logger;
+        private readonly ConnectionFactory _connectionFactory = null;
+        private string _exchangeName = null;
+        private string _queryName = null;
+        private string _routingKey = null;
 
         public MessagePublishing(ILogger<MessagePublishing> logger)
         {
@@ -33,45 +38,55 @@ namespace Grains
         public async Task<bool> PublishMessageAck(IMessage message)
         {
             _logger.LogInformation($"Sending with Ack: {message.SendingApplication} Payload: {message.Payload}");
-            var response = SendMessage(message);
+            var response = await SendMessage(message);
 
-            if (response.Result)
+            if (response)
             {
-                return response.Result;
+                return response;
             }
             else
             {
                 await PublishFailed(message);
-                return response.Result;
+                return response;
             }
+        }
+
+        private void SetupRabbitMq(IMessage message)
+        {
+            //todo: add to secrets
+            _exchangeName = "/";
+            _queryName = $"{message.SendingApplication} Logging";
+            _routingKey = $"{message.SendingApplication}";
+
+            ConnectionFactory factory = new ConnectionFactory();
+            // "guest"/"guest" by default, limited to localhost connections
+            factory.NetworkRecoveryInterval = TimeSpan.FromSeconds(5);
+            factory.AutomaticRecoveryEnabled = true;
+
+            factory.UserName = "guest";
+            factory.Password = "guest";
+            factory.VirtualHost = "/";
+            factory.HostName = "my-rabbit";
         }
 
         private async Task<bool> SendMessage(IMessage message)
         {
-            //todo: get ack from rabbitMQ
-
             try
             {
-                string exchangeName = "/";
-                string queueName = $"{message.SendingApplication} Logging";
-                string routingKey = $"{message.SendingApplication}";
+                if (_connectionFactory == null)
+                {
+                    SetupRabbitMq(message);
+                }
 
-                ConnectionFactory factory = new ConnectionFactory();
-                // "guest"/"guest" by default, limited to localhost connections
-                factory.UserName = "guest";
-                factory.Password = "guest";
-                factory.VirtualHost = "/";
-                factory.HostName = "my-rabbit";
-
-                IConnection conn = factory.CreateConnection();
+                IConnection conn = _connectionFactory.CreateConnection();
                 IModel channel = conn.CreateModel();
 
-                channel.ExchangeDeclare(exchangeName, ExchangeType.Direct);
-                channel.QueueDeclare(queueName, false, false, false, null);
-                channel.QueueBind(queueName, exchangeName, routingKey, null);
+                channel.ExchangeDeclare(_exchangeName, ExchangeType.Direct);
+                channel.QueueDeclare(_queryName, false, false, false, null);
+                channel.QueueBind(_queryName, _exchangeName, _routingKey, null);
 
                 byte[] messageBodyBytes = System.Text.Encoding.UTF8.GetBytes(message.ToString());
-                await Task.Run(() => channel.BasicPublish(exchangeName, routingKey, null, messageBodyBytes));
+                await Task.Run(() => channel.BasicPublish(_exchangeName, _routingKey, null, messageBodyBytes));
 
                 channel.Close();
                 conn.Close();

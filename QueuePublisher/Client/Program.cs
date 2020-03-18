@@ -10,7 +10,7 @@ using System.Threading.Tasks;
 
 namespace Client
 {
-    internal class Program
+    public class Program
     {
         private static int Main(string[] args)
         {
@@ -67,6 +67,20 @@ namespace Client
                                     options.ServiceId = "QueuePublisher";
                                 })
                                 .ConfigureLogging(logging => logging.AddConsole()).Build();
+
+                                /* Azure Setup
+                                // TODO replace with your connection string
+                                const string connectionString = "YOUR_CONNECTION_STRING_HERE";
+                                var client = new ClientBuilder()
+                                    .Configure<ClusterOptions>(options =>
+                                    {
+                                        options.ClusterId = "Cluster42";
+                                        options.ServiceId = "MyAwesomeService";
+                                    })
+                                    .UseAzureStorageClustering(options => options.ConnectionString = connectionString)
+                                    .ConfigureLogging(builder => builder.SetMinimumLevel(LogLevel.Warning).AddConsole())
+                                    .Build();
+                                */
 
                                 client.Connect().GetAwaiter().GetResult();
                                 Console.WriteLine("Client connected");
