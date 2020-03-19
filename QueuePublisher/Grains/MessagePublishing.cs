@@ -3,8 +3,8 @@ using Microsoft.Extensions.Logging;
 using Orleans;
 using RabbitMQ.Client;
 using System;
+using System.Reflection;
 using System.Threading.Tasks;
-using static Grains.Enums.Enums;
 
 namespace Grains
 {

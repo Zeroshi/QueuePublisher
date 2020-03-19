@@ -1,6 +1,5 @@
 ﻿using System;
 using System.Collections.Generic;
-using System.ComponentModel.DataAnnotations.Schema;
 using System.Text;
 
 namespace Grains.Schema
@@ -24,7 +23,7 @@ namespace Grains.Schema
         public string Email { get; set; }
         public string Description { get; set; }
 
-        [ForeignKey("StandardRefId")]
+        //[ForeignKey("StandardRefId")]
         public ICollection<FailedMessages> FailedMessages { get; set; }
     }
 }

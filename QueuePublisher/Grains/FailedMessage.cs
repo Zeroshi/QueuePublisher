@@ -1,8 +1,8 @@
 ﻿using Interfaces;
-using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Logging;
 using Orleans;
 using System;
+using System.Reflection;
 using System.Threading.Tasks;
 
 namespace Grains
@@ -29,11 +29,11 @@ namespace Grains
                 int result = 0;
                 _logger.LogInformation($"Saving to Database. Sending Application: {message.SendingApplication} Payload: {message.Payload}");
 
-                using (var db = new MessageContext())
-                {
-                    db.Messages.Add(message);
-                    result = await db.SaveChangesAsync();
-                }
+                //using (var db = new MessageContext())
+                //{
+                //    db.Messages.Add(message);
+                //    result = await db.SaveChangesAsync();
+                //}
 
                 return result;
             }
@@ -45,15 +45,15 @@ namespace Grains
             }
         }
 
-        public class MessageContext : DbContext
-        {
-            public DbSet<IMessage> Messages { get; set; }
+        //public class MessageContext : DbContext
+        //{
+        //    //public DbSet<IMessage> Messages { get; set; }
 
-            protected override void OnConfiguring(DbContextOptionsBuilder optionsBuilder)
-            {
-                optionsBuilder.UseSqlServer(
-                    @"Server=(localdb)\mssqllocaldb;Database=Blogging;Integrated Security=True");
-            }
-        }
+        //protected override void OnConfiguring(DbContextOptionsBuilder optionsBuilder)
+        //{
+        //    optionsBuilder.UseSqlServer(
+        //        @"Server=(localdb)\mssqllocaldb;Database=Blogging;Integrated Security=True");
+        //}
+        //}
     }
 }

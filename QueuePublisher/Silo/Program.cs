@@ -3,10 +3,14 @@ using Microsoft.Extensions.DependencyInjection;
 using Orleans;
 using Orleans.Configuration;
 using Orleans.Hosting;
+using Orleans.Versions.Compatibility;
 using System;
 using System.Net;
+using System.Reflection;
 using System.Threading;
 using System.Threading.Tasks;
+
+[assembly: AssemblyVersion("1.0.0")]
 
 namespace SiloHost
 {
@@ -48,48 +52,40 @@ namespace SiloHost
 
         private static async Task<ISiloHost> StartSilo()
         {
-            var builder = new SiloHostBuilder()
+            var siloHostBuilder = new SiloHostBuilder()
 
-                // Clustering information
                 .Configure<ClusterOptions>(options =>
                 {
                     options.ClusterId = "dev";
                     options.ServiceId = "QueuePublisher";
                 })
 
-                // Clustering provider
-                .UseLocalhostClustering()
+                //// Clustering provider
+                //.UseLocalhostClustering()
 
                 .Configure<EndpointOptions>(options =>
                 {
                     options.SiloPort = 11111;
                     options.GatewayPort = 30000;
-                    options.AdvertisedIPAddress = IPAddress.Loopback;
+                    options.AdvertisedIPAddress = IPAddress.Parse("172.17.0.5");
+                    options.GatewayListeningEndpoint = new IPEndPoint(IPAddress.Any, 40000);
+                    options.SiloListeningEndpoint = new IPEndPoint(IPAddress.Any, 50000);
+                })
+
+                .Configure<GrainVersioningOptions>(options =>
+                {
+                    options.DefaultCompatibilityStrategy = nameof(BackwardCompatible);
+                    options.DefaultVersionSelectorStrategy = nameof(AllVersionsCompatible);
                 })
 
                 .UseDashboard()
 
-                //.UseAzureStorageClustering(options => options.ConnectionString = connectionString)
+                .UseAzureStorageClustering(options => { options.ConnectionString = "DefaultEndpointsProtocol=https;AccountName=queueclusterstorage;AccountKey=bfMxQptp+yUBZtEBdrKKoe7jQiS3D96/7EWn38jwpsVWsrNMexpkuc8vX7+5Bov4KL19463Ca6fBEBxtB9v2og==;EndpointSuffix=core.windows.net"; })
 
                 // Application parts: just reference one of the grain implementations that we use
                 .ConfigureApplicationParts(parts => parts.AddApplicationPart(typeof(MessagePublishing).Assembly).WithReferences());
 
-            /* Azure Setup
-                // TODO replace with your connection string
-                const string connectionString = "YOUR_CONNECTION_STRING_HERE";
-                var silo = new SiloHostBuilder()
-                    .Configure<ClusterOptions>(options =>
-                    {
-                        options.ClusterId = "Cluster42";
-                        options.ServiceId = "MyAwesomeService";
-                    })
-                    .UseAzureStorageClustering(options => options.ConnectionString = connectionString)
-                    .ConfigureEndpoints(siloPort: 11111, gatewayPort: 30000)
-                    .ConfigureLogging(builder => builder.SetMinimumLevel(LogLevel.Warning).AddConsole())
-                    .Build();
-            */
-
-            host = builder.Build();
+            host = siloHostBuilder.Build();
             await host.StartAsync();
             return host;
         }
