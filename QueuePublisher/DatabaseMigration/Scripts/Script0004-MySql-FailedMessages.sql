@@ -1,18 +1,21 @@
-﻿----Alerting groups of failed messages
---create table AlertEmails (
---AlertEmailId INT AUTO_INCREMENT PRIMARY KEY,
---Email VARCHAR(255) not null,
---Description VARCHAR(255)
+﻿--create table EmailContactAlerts (
+--EmailContactAlertsId int auto_increment primary key,
+--Email varchar(255) not null,
+--Description varchar(255)
 --);
 
-----Failed messages table
 --create table FailedMessages (
---FailedMessageId int AUTO_INCREMENT PRIMARY KEY,
+--FailedMessageId int auto_increment primary key,
+--SendingApplication varchar(50) not null,
+--QueueName varchar(30) not null,
 --Message varchar(30000) not null,
---CreateTimeStamp DateTime not null,
+--CreatedTimeStamp DateTime not null,
 --LastRetryTimeStamp DateTime not null,
 --RetryTicker int not null,
---SecondsDelayInRetry int not null,
+--SecondsDelayForRetry int not null,
 --AlertEmailId int not null,
---Foreign Key (AlertEmailId) REFERENCES AlertEmails(AlertEmailId) ON DELETE CASCADE
+--Foreign Key (AlertEmailId) References EmailContactAlerts(EmailContactAlertsId) on delete cascade
 --) engine=innodb;
+
+--insert into EmailContactAlerts (Email, Description)
+--	values ("email", "description"), ("email2", "description");

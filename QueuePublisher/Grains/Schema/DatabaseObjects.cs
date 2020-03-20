@@ -1,12 +1,17 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.ComponentModel.DataAnnotations;
+using System.ComponentModel.DataAnnotations.Schema;
 using System.Text;
 
 namespace Grains.Schema
 {
     public class FailedMessages
     {
+        [Key]
+        [DatabaseGenerated(DatabaseGeneratedOption.Identity)]
         public int FailedMessageId { get; set; }
+
         public string SendingApplication { get; set; }
         public string QueueName { get; set; }
         public string Message { get; set; }
@@ -19,7 +24,10 @@ namespace Grains.Schema
 
     public class EmailContactAlerts
     {
+        [Key]
+        [DatabaseGenerated(DatabaseGeneratedOption.Identity)]
         public int EmailContactAlertsId { get; set; }
+
         public string Email { get; set; }
         public string Description { get; set; }
 

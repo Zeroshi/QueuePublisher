@@ -59,29 +59,18 @@ namespace Client
                             TimeSpan.FromSeconds(6)
                         }).Execute(() =>
                             {
-                                var client = new ClientBuilder()
-                                .UseLocalhostClustering()
-                                .Configure<ClusterOptions>(options =>
-                                {
-                                    options.ClusterId = "dev";
-                                    options.ServiceId = "QueuePublisher";
-                                })
-                                .ConfigureLogging(logging => logging.AddConsole()).Build();
-
-                                /* Azure Setup
-                                // TODO replace with your connection string
-                                const string connectionString = "YOUR_CONNECTION_STRING_HERE";
+                                //Azure Setup
                                 var client = new ClientBuilder()
                                     .Configure<ClusterOptions>(options =>
                                     {
-                                        options.ClusterId = "Cluster42";
-                                        options.ServiceId = "MyAwesomeService";
+                                        options.ClusterId = "dev";
+                                        options.ServiceId = "QueuePublisher";
                                     })
-                                    .UseAzureStorageClustering(options => options.ConnectionString = connectionString)
+                                    .UseAzureStorageClustering(options => options.ConnectionString = Environment.GetEnvironmentVariable("ClusterConnectionString"))
                                     .ConfigureLogging(builder => builder.SetMinimumLevel(LogLevel.Warning).AddConsole())
                                     .Build();
-                                */
 
+                                Console.WriteLine("Connecting the Client");
                                 client.Connect().GetAwaiter().GetResult();
                                 Console.WriteLine("Client connected");
 

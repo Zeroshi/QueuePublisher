@@ -3,14 +3,10 @@ using Microsoft.Extensions.DependencyInjection;
 using Orleans;
 using Orleans.Configuration;
 using Orleans.Hosting;
-using Orleans.Versions.Compatibility;
 using System;
 using System.Net;
-using System.Reflection;
 using System.Threading;
 using System.Threading.Tasks;
-
-[assembly: AssemblyVersion("1.0.0")]
 
 namespace SiloHost
 {
@@ -30,6 +26,7 @@ namespace SiloHost
         {
             try
             {
+                Console.WriteLine("Initiating Silo");
                 SetupApplicationShutdown();
 
                 var silo = await StartSilo();
@@ -52,6 +49,7 @@ namespace SiloHost
 
         private static async Task<ISiloHost> StartSilo()
         {
+            Console.WriteLine("Setting Silo Properties");
             var siloHostBuilder = new SiloHostBuilder()
 
                 .Configure<ClusterOptions>(options =>
@@ -72,20 +70,22 @@ namespace SiloHost
                     options.SiloListeningEndpoint = new IPEndPoint(IPAddress.Any, 50000);
                 })
 
-                .Configure<GrainVersioningOptions>(options =>
-                {
-                    options.DefaultCompatibilityStrategy = nameof(BackwardCompatible);
-                    options.DefaultVersionSelectorStrategy = nameof(AllVersionsCompatible);
-                })
+                //.Configure<GrainVersioningOptions>(options =>
+                //{
+                //    options.DefaultCompatibilityStrategy = nameof(BackwardCompatible);
+                //    options.DefaultVersionSelectorStrategy = nameof(AllVersionsCompatible);
+                //})
 
                 .UseDashboard()
 
-                .UseAzureStorageClustering(options => { options.ConnectionString = "DefaultEndpointsProtocol=https;AccountName=queueclusterstorage;AccountKey=bfMxQptp+yUBZtEBdrKKoe7jQiS3D96/7EWn38jwpsVWsrNMexpkuc8vX7+5Bov4KL19463Ca6fBEBxtB9v2og==;EndpointSuffix=core.windows.net"; })
+                .UseAzureStorageClustering(options => { options.ConnectionString = Environment.GetEnvironmentVariable("ClusterConnectionString"); })
 
                 // Application parts: just reference one of the grain implementations that we use
                 .ConfigureApplicationParts(parts => parts.AddApplicationPart(typeof(MessagePublishing).Assembly).WithReferences());
 
+            Console.WriteLine("Building Silo");
             host = siloHostBuilder.Build();
+            Console.WriteLine("Starting Silo");
             await host.StartAsync();
             return host;
         }
