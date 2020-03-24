@@ -74,6 +74,7 @@ namespace Client
                                 client.Connect().GetAwaiter().GetResult();
                                 Console.WriteLine("Client connected");
 
+
                                 return client;
                             });
         }
